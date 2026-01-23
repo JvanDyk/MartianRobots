@@ -1,16 +1,12 @@
-﻿using MartianRobots.Models;
+﻿using MartianRobots.Infrastructure.Queues;
+using MartianRobots.Models;
 using MartianRobots.Models.Enums;
 
 namespace MartianRobots.Services;
 
-public class RobotService
+public class RobotService(Position trueNorth) : RobotServiceBase(trueNorth)
 {
-    const int MAX_GRID_SIZE = 50;
-
-    public Queue<Robot> QueueOfRobots { get; private set; } = new Queue<Robot>();
-    public static Grid? grid { get; private set; } = default;
-
-    public async Task ProcessRobotsAsync(string fileLocation)
+    public override async Task ProcessRobotsAsync(string fileLocation)
     {
         // Read grid dimensions from first line
         using (var reader = new StreamReader(fileLocation))
@@ -23,10 +19,10 @@ public class RobotService
             var gridWidth = uint.Parse(readGridSize[0]);
             var gridHeight = uint.Parse(readGridSize[1]);
 
-            if (gridWidth > MAX_GRID_SIZE) gridWidth = MAX_GRID_SIZE;
-            if (gridHeight > MAX_GRID_SIZE) gridHeight = MAX_GRID_SIZE;
+            if (gridWidth > MaxGridSize) gridWidth = MaxGridSize;
+            if (gridHeight > MaxGridSize) gridHeight = MaxGridSize;
 
-            grid = new Grid(gridWidth, gridHeight);
+            grid = new Grid(gridWidth, gridHeight, new HashSet<Position>(), trueNorth);
 
             // Parse robots while reading from file
             while (!reader.EndOfStream)
@@ -64,6 +60,20 @@ public class RobotService
                 }
             }
 
+            QueueOfRobots.CompleteAdding();
         }
+    }
+
+    public override async Task ExecuteRobotsAsync()
+    {
+        using var writer = new StreamWriter("output.txt");
+        foreach (var robot in QueueOfRobots.SequenceOfRobots)
+        {
+
+            robot.ExecuteInstructions(grid!);
+            writer.WriteLine(robot.ToString());
+            Console.WriteLine($"Processed: {robot}");
+        }
+        await writer.FlushAsync();
     }
 }

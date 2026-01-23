@@ -1,11 +1,17 @@
 ﻿using FluentAssertions;
+using MartianRobots.Models;
 using MartianRobots.Services;
 
 namespace MartianRobots.Tests.UnitTests;
 
 public class RobotServiceTests
 {
-    private readonly RobotService _service = new();
+    private readonly RobotServiceBase _service;
+
+    public RobotServiceTests()
+    {
+        _service = new RobotService(trueNorth: new Position(0, 1));
+    }
 
     [Fact]
     public async Task TestRobotService_Given_inputData_ShouldNot_CreateGrid()
@@ -43,8 +49,8 @@ public class RobotServiceTests
         errorLogContent.Should().NotBeEmpty();
         errorLogContent.Should().Contain("Error parsing robot");
 
-        _service.QueueOfRobots.Should().HaveCountLessThan(3);
-        _service.QueueOfRobots.Should().HaveCount(2);
+        _service.QueueOfRobots.GetSnapshot().Should().HaveCountLessThan(3);
+        _service.QueueOfRobots.GetSnapshot().Should().HaveCount(2);
 
     }
 
@@ -55,9 +61,38 @@ public class RobotServiceTests
 
         await _service.ProcessRobotsAsync(fileRelativeLocation);
 
-        _service.QueueOfRobots.Should().NotBeEmpty();
-        _service.QueueOfRobots.Should().HaveCount(3);
+        _service.QueueOfRobots.GetSnapshot().Should().NotBeEmpty();
+        _service.QueueOfRobots.GetSnapshot().Should().HaveCount(3);
     }
 
-   
+    [Fact]
+    public async Task ExecuteRobotsAsync_Given_RobotAtEdge_ShouldBe_lostWithScent()
+    {
+        var fileLocation = "Data/edgeRobot.txt";
+
+        await _service.ProcessRobotsAsync(fileLocation);
+        await _service.ExecuteRobotsAsync();
+
+        RobotServiceBase.grid.Scents.Should().NotBeEmpty();
+
+        var output = await File.ReadAllTextAsync("output.txt");
+        output.Should().Contain("LOST");
+    }
+
+    [Fact]
+    public async Task ExecuteRobotsAsync_Given_2RobotAtEdge_1Should_Survive()
+    {
+        var fileLocation = "Data/edgeRobot.txt";
+
+        await _service.ProcessRobotsAsync(fileLocation);
+        await _service.ExecuteRobotsAsync();
+
+        RobotServiceBase.grid.Scents.Should().NotBeEmpty();
+
+        var output = await File.ReadAllTextAsync("output.txt");
+        var lostCount = output.Split('\n', StringSplitOptions.RemoveEmptyEntries).Count(line => line.Contains("LOST"));
+        lostCount.Should().Be(1, "Only one robot should be lost, the other should survive due to scent");
+    }
+
+
 }

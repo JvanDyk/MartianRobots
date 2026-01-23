@@ -1,0 +1,6 @@
+5 3
+1 1 N
+LFFFFFFF
+
+1 1 N
+LFFFRF
