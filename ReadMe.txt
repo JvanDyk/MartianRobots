@@ -8,6 +8,7 @@ dotnet run --project ./MartianRobots/MartianRobots.csproj
 ## Run Tests
 ```bash
 dotnet test ./MartianRobots.Tests/MartianRobots.Tests.csproj
+```
 
 ## Notes
 For extended behaviour of robot commands, 
@@ -18,5 +19,5 @@ lefthand:...
 righthand:...
 etc...
 
-I would then append these actions to a sequence with, 
-like its current instructions, do be adjusted to type of command to be executed.
+I would then append these actions to a sequence of different commands.
+Like its current instructions, to be adjusted to type of command to be executed in serial.

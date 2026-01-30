@@ -6,16 +6,18 @@ namespace MartianRobots.Tests.UnitTests;
 
 public class RobotServiceTests
 {
-    private readonly RobotServiceBase _service;
-
-    public RobotServiceTests()
+    // We create a new instance per test,
+    // because the Grid inside this service is static, to be shared among all robots
+    // and could interfere with other tests if reused.
+    public RobotServiceBase CreateInstance()
     {
-        _service = new RobotService(trueNorth: new Position(0, 1));
+        return new RobotService(trueNorth: new Position(0, 1));
     }
 
     [Fact]
     public async Task TestRobotService_Given_inputData_ShouldNot_CreateGrid()
     {
+        RobotServiceBase _service = CreateInstance();
         var fileLocation = "Data/invalidGrid.txt";
 
         await Assert.ThrowsAsync<Exception>(() => _service.ProcessRobotsAsync(fileLocation));
@@ -24,6 +26,8 @@ public class RobotServiceTests
     [Fact]
     public async Task TestRobotService_Given_inputData_Should_CreateGrid()
     {
+        RobotServiceBase _service = CreateInstance();
+
         var fileLocation = "Data/input.txt";
 
         await _service.ProcessRobotsAsync(fileLocation);
@@ -35,6 +39,7 @@ public class RobotServiceTests
     [Fact]
     public async Task TestRobotService_Given_invalidRobotData_Should_HandleExceptionsAndLogErrors()
     {
+        RobotServiceBase _service = CreateInstance();
         var fileRelativeLocation = "Data/invalidRobot.txt";
 
         if (File.Exists("error.log"))
@@ -57,6 +62,7 @@ public class RobotServiceTests
     [Fact]
     public async Task TestRobotService_Given_inputData_Should_Queue3Robots()
     {
+        RobotServiceBase _service = CreateInstance();
         var fileRelativeLocation = "Data/input.txt";
 
         await _service.ProcessRobotsAsync(fileRelativeLocation);
@@ -68,6 +74,7 @@ public class RobotServiceTests
     [Fact]
     public async Task ExecuteRobotsAsync_Given_RobotAtEdge_ShouldBe_lostWithScent()
     {
+        RobotServiceBase _service = CreateInstance();
         var fileLocation = "Data/edgeRobot.txt";
 
         await _service.ProcessRobotsAsync(fileLocation);
@@ -82,6 +89,7 @@ public class RobotServiceTests
     [Fact]
     public async Task ExecuteRobotsAsync_Given_2RobotAtEdge_1Should_Survive()
     {
+        RobotServiceBase _service = CreateInstance();
         var fileLocation = "Data/edgeRobot.txt";
 
         await _service.ProcessRobotsAsync(fileLocation);

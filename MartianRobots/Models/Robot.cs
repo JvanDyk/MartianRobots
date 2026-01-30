@@ -26,7 +26,7 @@ public class Robot(Position position, OrientationEnum orientation, char[] instru
         };
     }
 
-    public void MoveForward(ref Grid grid)
+    public void MoveForward(Grid grid)
     {
         if (IsLost) return;
 
@@ -67,7 +67,7 @@ public class Robot(Position position, OrientationEnum orientation, char[] instru
                     TurnRight();
                     break;
                 case 'F':
-                    MoveForward(ref grid);
+                    MoveForward(grid);
                     break;
             }
         }
